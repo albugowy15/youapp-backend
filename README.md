@@ -14,7 +14,6 @@
     "email": "johndoe@mail.com",
     "username": "johndoe",
     "password": "password",
-    "confifm_password": "confifm_password"
   }
   ```
 - status code: 201
@@ -55,7 +54,7 @@
 
 #### Get user profile
 
-- path: `/user/profile`
+- path: `/profile`
 - method: `GET`
 - status code: 200
 - response body:
@@ -81,7 +80,7 @@
 
 #### Update user profile
 
-- path: `/user/profile`
+- path: `/profile`
 - method: `PATCH`
 - body:
 

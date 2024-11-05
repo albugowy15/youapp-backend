@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
-import { User } from './user.schema';
 
 @Schema()
 export class Profile {
@@ -26,13 +25,13 @@ export class Profile {
   height_cm: number;
 
   @Prop()
-  weight_cm: number;
+  weight_kg: number;
 
   @Prop([String])
   interests: string[];
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
-  user: User;
+  user: string;
 }
 
 export type ProfileDocument = HydratedDocument<Profile>;

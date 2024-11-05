@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { LoginDto, RegisterDto } from './auth.dto';
+import { AuthenticatedUser, LoginDto, RegisterDto } from './auth.dto';
 import * as bcrypt from 'bcrypt';
 import { UsersRepository } from 'src/users/users.repository';
 
@@ -11,7 +11,10 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(identifier: string, password: string): Promise<any> {
+  async validateUser(
+    identifier: string,
+    password: string,
+  ): Promise<AuthenticatedUser | null> {
     const user = await this.usersRepository.findOneByEmailOrUsername(
       identifier,
       identifier,
@@ -23,10 +26,14 @@ export class AuthService {
     if (!match) {
       return null;
     }
-    return { email: user.email, username: user.username, id: user._id };
+    return {
+      email: user.email,
+      username: user.username,
+      id: user._id.toString(),
+    };
   }
 
-  async login(loginDto: LoginDto) {
+  async login(loginDto: LoginDto): Promise<{ access_token: string }> {
     const user = await this.usersRepository.findOneByEmailOrUsername(
       loginDto.identifier,
       loginDto.identifier,
@@ -48,8 +55,7 @@ export class AuthService {
     };
   }
 
-  async register(registerDto: RegisterDto) {
-    // check unique
+  async register(registerDto: RegisterDto): Promise<void> {
     const duplicateUserByEmail = await this.usersRepository.findOneByEmail(
       registerDto.email,
     );
@@ -66,14 +72,11 @@ export class AuthService {
       );
     }
 
-    // hash password
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
-    // register
     await this.usersRepository.create({
       password: hashedPassword,
       email: registerDto.email,
       username: registerDto.username,
     });
-    return;
   }
 }

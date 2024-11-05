@@ -1,4 +1,6 @@
-export class UpdateDto {
+import { Profile } from 'src/schemas/profile.schema';
+
+export class UpdateProfileDto {
   about: {
     profile_picture: string;
     display_name: string;
@@ -11,3 +13,8 @@ export class UpdateDto {
   };
   interests: string[];
 }
+
+export type ProfileResponseDto = Promise<{
+  about: Omit<Profile, 'interests' | 'user'>;
+  interests: Profile['interests'];
+} | null>;
