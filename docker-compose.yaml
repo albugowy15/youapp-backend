@@ -1,0 +1,33 @@
+services:
+  backend:
+    build:
+      context: .
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/test
+      - JWT_SECRET=customesecretjwtsecret
+    ports:
+      - 3000:3000
+    depends_on:
+      - mongodb
+    restart: always
+    networks: 
+      - my_network
+
+  mongodb:
+    hostname: mongodb
+    container_name: mongodb
+    image: mongo:latest
+    environment:
+      - MONGODB_DATABASE="test"
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - my_network
+
+volumes:
+  mongo_data:
+
+networks:
+  my_network:
