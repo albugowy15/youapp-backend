@@ -3,34 +3,34 @@ import mongoose, { HydratedDocument } from 'mongoose';
 
 @Schema()
 export class Profile {
-  @Prop({ required: true })
-  profile_picture: string;
+  @Prop({ required: false })
+  profile_picture?: string;
 
-  @Prop({ required: true })
-  display_name: string;
+  @Prop({ required: false })
+  display_name?: string;
 
-  @Prop()
-  gender: 'male' | 'female';
+  @Prop({ required: false })
+  gender?: 'male' | 'female';
 
-  @Prop()
-  birthday: string;
+  @Prop({ required: false })
+  birthday?: string;
 
-  @Prop()
-  horoscope: string;
+  @Prop({ required: false })
+  horoscope?: string;
 
-  @Prop()
-  zodiac: string;
+  @Prop({ required: false })
+  zodiac?: string;
 
-  @Prop()
-  height_cm: number;
+  @Prop({ required: false })
+  height_cm?: number;
 
-  @Prop()
-  weight_kg: number;
+  @Prop({ required: false })
+  weight_kg?: number;
 
   @Prop([String])
-  interests: string[];
+  interests?: string[];
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
   user: string;
 }
 

@@ -5,6 +5,8 @@ import {
   CallHandler,
   BadRequestException,
   HttpException,
+  UnauthorizedException,
+  HttpStatus,
 } from '@nestjs/common';
 import { Observable, throwError, TimeoutError } from 'rxjs';
 import { catchError, map, timeout } from 'rxjs/operators';
@@ -17,18 +19,36 @@ export interface Response<T> {
   data?: T | null;
 }
 
+export class AppException extends HttpException {
+  constructor(message: string, status: number) {
+    super(message, status);
+  }
+}
+
 @Injectable()
 export class TransformInterceptor<T>
   implements NestInterceptor<T, Response<T>>
 {
   intercept(
-    context: ExecutionContext,
+    _context: ExecutionContext,
     next: CallHandler,
   ): Observable<Response<T>> {
     return next.handle().pipe(
       timeout(5000),
       map((data) => ({ success: true, message: 'Success', data })),
       catchError((error) => {
+        if (error instanceof AppException) {
+          return throwError(
+            () =>
+              new HttpException(
+                {
+                  success: false,
+                  message: error.message,
+                },
+                error.getStatus(),
+              ),
+          );
+        }
         if (error instanceof ZodError) {
           return throwError(
             () =>
@@ -38,20 +58,31 @@ export class TransformInterceptor<T>
                   message: 'Request validation failed',
                   validation_error: error.format(),
                 },
-                400,
+                HttpStatus.BAD_REQUEST,
               ),
           );
         }
-        if (error instanceof BadRequestException) {
-          const responseMessage = error.message;
+        if (error instanceof UnauthorizedException) {
           return throwError(
             () =>
               new HttpException(
                 {
                   success: false,
-                  message: responseMessage,
+                  message: 'Unauthorized',
                 },
-                400,
+                HttpStatus.UNAUTHORIZED,
+              ),
+          );
+        }
+        if (error instanceof BadRequestException) {
+          return throwError(
+            () =>
+              new HttpException(
+                {
+                  success: false,
+                  message: error.message,
+                },
+                HttpStatus.BAD_REQUEST,
               ),
           );
         }
@@ -63,7 +94,7 @@ export class TransformInterceptor<T>
                   success: false,
                   message: 'Request timeout',
                 },
-                400,
+                HttpStatus.REQUEST_TIMEOUT,
               ),
           );
         }
@@ -75,7 +106,7 @@ export class TransformInterceptor<T>
                 success: false,
                 message: 'Something went wrong',
               },
-              500,
+              HttpStatus.INTERNAL_SERVER_ERROR,
             ),
         );
       }),

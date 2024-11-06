@@ -16,7 +16,7 @@ export class ProfilesRepository {
   }
 
   async create(data: Profile): Promise<ProfileDocument> {
-    const createdProfile = new this.profileModel(data);
+    const createdProfile = await this.profileModel.create(data);
     return await createdProfile.save();
   }
 

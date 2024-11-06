@@ -30,28 +30,28 @@ export class ProfilesService {
       await this.profilesRepository.create({
         user: userID,
         interests: updateDto.interests,
-        display_name: updateDto.about.display_name,
-        profile_picture: updateDto.about.profile_picture,
-        birthday: updateDto.about.birthday,
-        zodiac: updateDto.about.zodiac,
-        horoscope: updateDto.about.horoscope,
-        gender: updateDto.about.gender,
-        height_cm: updateDto.about.height_cm,
-        weight_kg: updateDto.about.weight_kg,
+        display_name: updateDto.about?.display_name,
+        profile_picture: updateDto.about?.profile_picture,
+        birthday: updateDto.about?.birthday,
+        zodiac: updateDto.about?.zodiac,
+        horoscope: updateDto.about?.horoscope,
+        gender: updateDto.about?.gender,
+        height_cm: updateDto.about?.height_cm,
+        weight_kg: updateDto.about?.weight_kg,
       });
       return;
     }
 
     await this.profilesRepository.update(userID, {
       interests: updateDto.interests,
-      display_name: updateDto.about.display_name,
-      profile_picture: updateDto.about.profile_picture,
-      birthday: updateDto.about.birthday,
-      zodiac: updateDto.about.zodiac,
-      horoscope: updateDto.about.horoscope,
-      gender: updateDto.about.gender,
-      height_cm: updateDto.about.height_cm,
-      weight_kg: updateDto.about.weight_kg,
+      display_name: updateDto.about?.display_name,
+      profile_picture: updateDto.about?.profile_picture,
+      birthday: updateDto.about?.birthday,
+      zodiac: updateDto.about?.zodiac,
+      horoscope: updateDto.about?.horoscope,
+      gender: updateDto.about?.gender,
+      height_cm: updateDto.about?.height_cm,
+      weight_kg: updateDto.about?.weight_kg,
     });
   }
 }
