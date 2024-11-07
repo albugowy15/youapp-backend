@@ -12,6 +12,7 @@ import { UpdateProfileDto, updateProfileSchema } from './profiles.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RequestWithUserDto } from '../auth/auth.dto';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('profile')
 export class ProfilesController {
@@ -19,6 +20,7 @@ export class ProfilesController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   async find(@Request() req: RequestWithUserDto) {
     return await this.profilesService.find(req.user.id);
   }
@@ -26,6 +28,7 @@ export class ProfilesController {
   @Patch()
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ZodValidationPipe(updateProfileSchema))
+  @ApiBearerAuth()
   async update(
     @Body() updateDto: UpdateProfileDto,
     @Request() req: RequestWithUserDto,

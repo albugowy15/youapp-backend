@@ -6,32 +6,40 @@
       crossorigin="anonymous"
     ></script>
     <script>
-      const socket = io('http://localhost:3000');
-      const senderID = 'client2';
-      const receiverID = 'client1';
-
+      const senderID = '672c7e2e109de796dd1b49e3';
+      const receiverID = '672c7e1978061b52ea05260a'; // client 1
+      const socket = io('http://localhost:3000', {
+        query: {
+          userID: senderID,
+        },
+      });
       function sendMessage() {
         const content = document.getElementById('message').value;
-        socket.emit('send_message', { senderID, receiverID, content });
+        socket.emit('private_message', {
+          toUserID: receiverID,
+          message: content,
+        });
       }
-      socket.on('connect', function () {
-        console.log('Connected');
-
-        socket.emit('identify', senderID, (response) =>
-          console.log('Identity:', response),
-        );
+      socket.on('history', function (messages) {
+        const messagesDoc = document.getElementById('messages');
+        messages.forEach((messageItem) => {
+          const item = document.createElement('li');
+          item.textContent = `from:${messageItem.from_user_id},to:${messageItem.to_user_id}: ${messageItem.message}`;
+          messagesDoc.appendChild(item);
+        });
       });
-      socket.on('receive_message', (data) => {
-        const messages = document.getElementById('messages');
+      socket.on('receive_message', (message) => {
+        const messagesDoc = document.getElementById('messages');
         const item = document.createElement('li');
-        item.textContent = `${data.senderID}: ${data.content}`;
-        messages.appendChild(item);
+        item.textContent = `from:${message.from_user_id},to:${message.to_user_id}: ${message.message}`;
+        messagesDoc.appendChild(item);
       });
     </script>
   </head>
 
   <body>
     <h2>Private Chat Application - Client 2</h2>
+    <h3>Send message to Client 1 </h3>
     <div id="chat">
       <ul id="messages"></ul>
     </div>

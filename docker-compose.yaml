@@ -5,12 +5,16 @@ services:
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/test
       - JWT_SECRET=customesecretjwtsecret
+      - CLOUDINARY_CLOUD_NAME=<your-cloudinary-cloud-name>
+      - CLOUDINARY_API_KEY=<your-cloudinary-api-key>
+      - CLOUDINARY_API_SECRET=<your-cloudinary-api-secret>
+      - CLOUDINARY_URL=cloudinary://<your-cloudinary-url>
     ports:
       - 3000:3000
     depends_on:
       - mongodb
     restart: always
-    networks: 
+    networks:
       - my_network
 
   mongodb:

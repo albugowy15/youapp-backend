@@ -1,49 +1,78 @@
 import {
   ConnectedSocket,
   MessageBody,
+  OnGatewayConnection,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { MessagesRepository } from './messages.repository';
+import { isValidObjectId } from 'mongoose';
+import { z } from 'zod';
 
-interface UserSocket {
-  userID: string;
-  socketID: string;
+const privateMessageBody = z
+  .object({
+    toUserID: z
+      .string()
+      .min(1)
+      .refine((val) => isValidObjectId(val)),
+    message: z.string().min(1).max(300),
+  })
+  .required();
+
+const userIDSchema = z
+  .string()
+  .min(1)
+  .refine((val) => isValidObjectId(val));
+
+function parseUserID(val: unknown) {
+  const parsedUserID = userIDSchema.safeParse(val);
+  return parsedUserID;
 }
+
 @WebSocketGateway({
   cors: {
     origin: true,
   },
 })
-export class MessagesGateway {
+export class MessagesGateway implements OnGatewayConnection {
+  constructor(private messagesRepository: MessagesRepository) {}
   @WebSocketServer()
   server!: Server;
 
-  private users: UserSocket[] = [];
-
-  @SubscribeMessage('identify')
-  identity(@MessageBody() userID: string, @ConnectedSocket() client: Socket) {
-    this.users.push({ userID: userID, socketID: client.id });
-    console.log(`User ${userID} connected with socket ${client.id}`);
+  async handleConnection(client: Socket) {
+    const parsedUserID = parseUserID(client.handshake.query.userID);
+    if (parsedUserID.success) {
+      client.join(parsedUserID.data);
+      const messageHistory =
+        await this.messagesRepository.findByFromUserIDOrToUserID(
+          parsedUserID.data,
+        );
+      client.emit('history', messageHistory);
+    } else {
+      client.disconnect();
+    }
   }
 
-  @SubscribeMessage('send_message')
-  sendMessage(
-    @MessageBody()
-    data: {
-      senderID: string;
-      receiverID: string;
-      content: string;
-    },
+  @SubscribeMessage('private_message')
+  async message(
+    @MessageBody() payload: { toUserID: string; message: string },
+    @ConnectedSocket() client: Socket,
   ) {
-    const { senderID, receiverID, content } = data;
-    const receiver = this.users.find((user) => user.userID === receiverID);
-    if (receiver) {
-      this.server
-        .to(receiver.socketID)
-        .emit('receive_message', { senderID, content });
-      console.log(`Message from ${senderID} to ${receiverID}: ${content}`);
+    const parsedFromUserID = parseUserID(client.handshake.query.userID);
+    if (parsedFromUserID.success) {
+      const parsedPayload = privateMessageBody.safeParse(payload);
+      if (!parsedPayload.success) {
+        return;
+      }
+      const savedMessage = await this.messagesRepository.create({
+        to_user_id: parsedPayload.data.toUserID,
+        from_user_id: parsedFromUserID.data,
+        message: parsedPayload.data.message,
+      });
+      client.to(payload.toUserID).emit('receive_message', savedMessage);
+      client.emit('receive_message', savedMessage);
     }
   }
 }
