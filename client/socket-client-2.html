@@ -1,0 +1,41 @@
+<html>
+  <head>
+    <script
+      src="https://cdn.socket.io/4.3.2/socket.io.min.js"
+      integrity="sha384-KAZ4DtjNhLChOB/hxXuKqhMLYvx3b5MlT55xPEiNmREKRzeEm+RVPlTnAn0ajQNs"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      const socket = io('http://localhost:3000');
+      const senderID = 'client2';
+      const receiverID = 'client1';
+
+      function sendMessage() {
+        const content = document.getElementById('message').value;
+        socket.emit('send_message', { senderID, receiverID, content });
+      }
+      socket.on('connect', function () {
+        console.log('Connected');
+
+        socket.emit('identify', senderID, (response) =>
+          console.log('Identity:', response),
+        );
+      });
+      socket.on('receive_message', (data) => {
+        const messages = document.getElementById('messages');
+        const item = document.createElement('li');
+        item.textContent = `${data.senderID}: ${data.content}`;
+        messages.appendChild(item);
+      });
+    </script>
+  </head>
+
+  <body>
+    <h2>Private Chat Application - Client 2</h2>
+    <div id="chat">
+      <ul id="messages"></ul>
+    </div>
+    <input id="message" placeholder="Message" />
+    <button onclick="sendMessage()">Send Message</button>
+  </body>
+</html>

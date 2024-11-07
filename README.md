@@ -108,3 +108,5 @@
     "message": "OK"
   }
   ```
+
+## Websockets
